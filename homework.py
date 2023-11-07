@@ -1,6 +1,3 @@
-# Константы и глобальные переменные.
-
-
 class InfoMessage:
     """Информационное сообщение о тренировке."""
     def __init__(self,
@@ -29,9 +26,9 @@ class InfoMessage:
 
 class Training:
     """Базовый класс тренировки."""
-    M_IN_KM = 1000
+    M_IN_KM: int = 1000
     LEN_STEP: float = 0.65
-    MIN_IN_H = 60
+    MIN_IN_H: int = 60
 
     def __init__(self,
                  action: int,
@@ -82,7 +79,8 @@ class Running(Training):
         k1 = self.CALORIES_MEAN_SPEED_MULTIPLIER
         k2 = self.CALORIES_MEAN_SPEED_SHIFT
         values = (k1 * super().get_mean_speed() + k2)
-        return values * self.weight / self.M_IN_KM * self.duration * self.MIN_IN_H
+        run_cal_p1 = self.duration * self.MIN_IN_H
+        return values * self.weight / self.M_IN_KM * run_cal_p1
 
 
 class SportsWalking(Training):
@@ -90,7 +88,7 @@ class SportsWalking(Training):
     k1: float = 0.035
     k2: float = 0.029
     KM_H_TO_M_S: float = 0.278
-    CM_TO_M: float = 100
+    CM_TO_M: int = 100
 
     def __init__(self,
                  action: int,
@@ -103,10 +101,11 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        speed_m_s = super().get_mean_speed() * self.M_IN_KM / 3600 * self.KM_H_TO_M_S
-        part1 = speed_m_s**2
-        part2 = (part1 / self.height * self.CM_TO_M) * self.k2 * self.weight
-        values = ((self.k1 * self.weight + part2) * self.duration * self.MIN_IN_H)
+        speed_m_s = super().get_mean_speed() * self.KM_H_TO_M_S
+        wlk_cal_p1 = (speed_m_s)**2 / self.height * self.CM_TO_M
+        wlk_cal_p2 = wlk_cal_p1 * self.k2 * self.weight
+        wlk_cal_p3 = self.duration * self.MIN_IN_H
+        values = ((self.k1 * self.weight + wlk_cal_p2) * wlk_cal_p3)
         return values
 
 
@@ -134,7 +133,8 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-        return (self.get_mean_speed() + self.MEAN_SPEED_KONST) * self.SPEED_KONST * self.weight * self.duration
+        swm_cal_p1 = self.SPEED_KONST * self.weight * self.duration
+        return (self.get_mean_speed() + self.MEAN_SPEED_KONST) * swm_cal_p1
 
 
 def read_package(workout_type: str, data: list) -> Training:
@@ -155,7 +155,7 @@ def main(training: Training) -> None:
 
 
 if __name__ == '__main__':
-    packages = [
+    packages: list[tuple[str, list[int or float]]] = [
         ('SWM', [720, 1, 80, 25, 40]),
         ('RUN', [15000, 1, 75]),
         ('WLK', [9000, 1, 75, 180]),

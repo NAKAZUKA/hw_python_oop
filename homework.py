@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, fields
 
 
 @dataclass
@@ -10,15 +10,16 @@ class InfoMessage:
     speed: float
     calories: float
 
+    MESSAGE = (
+        'Тип тренировки: {training_type}; '
+        'Длительность: {duration:.3f} ч.; '
+        'Дистанция: {distance:.3f} км; '
+        'Ср. скорость: {speed:.3f} км/ч; '
+        'Потрачено ккал: {calories:.3f}.'
+    )
+
     def get_message(self) -> str:
-        MESSAGE = (
-            'Тип тренировки: {training_type}; '
-            'Длительность: {duration:.3f} ч.; '
-            'Дистанция: {distance:.3f} км; '
-            'Ср. скорость: {speed:.3f} км/ч; '
-            'Потрачено ккал: {calories:.3f}.'
-        )
-        return MESSAGE.format(**asdict(self))
+        return self.MESSAGE.format(**asdict(self))
 
 
 @dataclass
@@ -43,8 +44,8 @@ class Training:
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
         raise NotImplementedError(
-            'Метод get_spent_calories класса Training '
-            'должен быть переопределен в подклассах'
+            f'метод или функция класса {self.__class__.__name__} '
+            'еще не реализована.'
         )
 
     def show_training_info(self) -> InfoMessage:
@@ -76,13 +77,11 @@ class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
     CALORIES_MULTIPLICATION_SPEED = 0.035
     CALORIES_MULTIPLICATION_HEIGHT = 0.029
-    M_IN_KM = 1000
     CM_TO_M = 100
-    MIN_IN_H = 60
 
     height: float
 
-    KM_H_TO_M_S = round(M_IN_KM / MIN_IN_H**2, 3)
+    KM_H_TO_M_S = round(Training.M_IN_KM / Training.MIN_IN_H**2, 3)
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
@@ -127,12 +126,23 @@ TYPES_TRANING = {
     'WLK': SportsWalking
 }
 
+DICT_FOR_CHECKING_PARAMETR = {
+    'SWM': len(fields(Swimming)),
+    'RUN': len(fields(Running)),
+    'WLK': len(fields(SportsWalking))
+}
+
+PHRASE_TYPE_ERROR = 'Неверный тип тренировки: {}'
+PHRASE_COUNT_PARAMETRS_ERROR = 'неверное число переданных параметров для {}'
+
 
 def read_package(workout_type: str, data: list[float]) -> Training:
     """Прочитать данные полученные от датчиков."""
     if workout_type in TYPES_TRANING:
-        return TYPES_TRANING[workout_type](*data)
-    raise ValueError(f"Неверный тип тренировки: {workout_type}")
+        if len(data) == DICT_FOR_CHECKING_PARAMETR[workout_type]:
+            return TYPES_TRANING[workout_type](*data)
+        raise Exception(PHRASE_COUNT_PARAMETRS_ERROR.format(workout_type))
+    raise ValueError(PHRASE_TYPE_ERROR.format(workout_type))
 
 
 def main(training: Training) -> None:

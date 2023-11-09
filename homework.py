@@ -125,23 +125,19 @@ TYPES_TRANING = {
     'RUN': Running,
     'WLK': SportsWalking
 }
-
-DICT_FOR_CHECKING_PARAMETR = {
-    'SWM': len(fields(Swimming)),
-    'RUN': len(fields(Running)),
-    'WLK': len(fields(SportsWalking))
-}
-
-PHRASE_TYPE_ERROR = 'Неверный тип тренировки: {}'
+PHRASE_TYPE_ERROR = (
+    'Неверный тип тренировки: {}. '
+    'Введите один из слудующих вариантов: {}'
+)
 PHRASE_COUNT_PARAMETRS_ERROR = 'неверное число переданных параметров для {}'
 
 
 def read_package(workout_type: str, data: list[float]) -> Training:
     """Прочитать данные полученные от датчиков."""
     if workout_type in TYPES_TRANING:
-        if len(data) == DICT_FOR_CHECKING_PARAMETR[workout_type]:
-            return TYPES_TRANING[workout_type](*data)
-        raise Exception(PHRASE_COUNT_PARAMETRS_ERROR.format(workout_type))
+        if len(data) != len(fields(TYPES_TRANING[workout_type])):
+            raise Exception(PHRASE_COUNT_PARAMETRS_ERROR.format(workout_type))
+        return TYPES_TRANING[workout_type](*data)
     raise ValueError(PHRASE_TYPE_ERROR.format(workout_type))
 
 

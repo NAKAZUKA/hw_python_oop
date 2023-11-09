@@ -11,15 +11,14 @@ class InfoMessage:
     calories: float
 
     def get_message(self) -> str:
-        data = asdict(self)
-        message = (
+        MESSAGE = (
             'Тип тренировки: {training_type}; '
             'Длительность: {duration:.3f} ч.; '
             'Дистанция: {distance:.3f} км; '
             'Ср. скорость: {speed:.3f} км/ч; '
             'Потрачено ккал: {calories:.3f}.'
         )
-        return message.format(**data)
+        return MESSAGE.format(**asdict(self))
 
 
 @dataclass
@@ -75,8 +74,8 @@ class Running(Training):
 @dataclass
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
-    CALORIES_COEFFICIENT_SPEED = 0.035
-    CALORIES_COEFFICIENT_HEIGHT = 0.029
+    CALORIES_MULTIPLICATION_SPEED = 0.035
+    CALORIES_MULTIPLICATION_HEIGHT = 0.029
     M_IN_KM = 1000
     CM_TO_M = 100
     MIN_IN_H = 60
@@ -88,10 +87,14 @@ class SportsWalking(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
         return (
-            (self.CALORIES_COEFFICIENT_SPEED * self.weight
-                + ((self.get_mean_speed() * self.KM_H_TO_M_S)**2
-                    / self.height * self.CM_TO_M)
-                * self.CALORIES_COEFFICIENT_HEIGHT * self.weight)
+            (
+                self.CALORIES_MULTIPLICATION_SPEED * self.weight
+                + (
+                    (self.get_mean_speed() * self.KM_H_TO_M_S)**2
+                    / self.height * self.CM_TO_M
+                )
+                * self.CALORIES_MULTIPLICATION_HEIGHT * self.weight
+            )
         ) * self.duration * self.MIN_IN_H
 
 
@@ -99,8 +102,8 @@ class SportsWalking(Training):
 class Swimming(Training):
     """Тренировка: плавание."""
     LEN_STEP = 1.38
-    MEAN_SPEED_KONST = 1.1
-    CALORIES_BURN_RATE = 2
+    MEAN_SPEED_ADDITION = 1.1
+    CALORIES_BURNRATE_MULTIPLICATION = 2
 
     length_pool: float
     count_pool: int
@@ -114,8 +117,8 @@ class Swimming(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
         return (
-            (self.get_mean_speed() + self.MEAN_SPEED_KONST)
-        ) * self.CALORIES_BURN_RATE * self.weight * self.duration
+            (self.get_mean_speed() + self.MEAN_SPEED_ADDITION)
+        ) * self.CALORIES_BURNRATE_MULTIPLICATION * self.weight * self.duration
 
 
 TYPES_TRANING = {
@@ -129,7 +132,7 @@ def read_package(workout_type: str, data: list[float]) -> Training:
     """Прочитать данные полученные от датчиков."""
     if workout_type in TYPES_TRANING:
         return TYPES_TRANING[workout_type](*data)
-    raise ValueError("Неверный тип тренировки")
+    raise ValueError(f"Неверный тип тренировки: {workout_type}")
 
 
 def main(training: Training) -> None:
